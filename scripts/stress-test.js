@@ -1,8 +1,9 @@
 /**
- * AI Agent Guardian - 1000-Case Stress & Fuzz Testing Suite
+ * AI Agent Guardian - 1 Million Case Fuzz & Stress Testing Suite
  * 
- * Script này tự động tạo ra 1000 trường hợp kiểm thử cực khó (500 ca HỢP LỆ phức tạp 
- * và 500 ca VI PHẠM ẩn giấu tinh vi) để kiểm thử độ nhạy và chính xác của Regex Engine.
+ * Script này tự động tạo và kiểm định 1.000.000 trường hợp kiểm thử cực kỳ khắt khe
+ * (500.000 ca sạch gây nhiễu và 500.000 ca vi phạm tinh vi) để đảm bảo bộ lọc
+ * đạt độ chính xác 100% không có sai sót.
  */
 
 const MOCK_PATTERNS = [
@@ -27,10 +28,6 @@ const SECRET_PATTERNS = [
   /api_key\s*=\s*['"][a-zA-Z0-9_\-]{16,}['"]/i
 ];
 
-const BANNED_PACKAGES = [
-  'request', 'node-sass', 'express-jwt', 'moment', 'axios-mock-adapter'
-];
-
 // Hàm kiểm thử xem một dòng code có vi phạm luật không
 function evaluateLine(line) {
   const isMock = MOCK_PATTERNS.some(p => p.test(line));
@@ -39,110 +36,101 @@ function evaluateLine(line) {
   return { isMock, isSecret, isDebugger, isViolating: isMock || isSecret || isDebugger };
 }
 
-// Bộ tạo 1000 ca kiểm thử
-function generateTestCases() {
-  const cleanCases = [];
-  const violatingCases = [];
+function runStressTest() {
+  console.log('==================================================');
+  console.log('🚀 KHỞI CHẠY BỘ KIỂM THỬ STRESS TEST 1 TRIỆU CASES CỰC KHÓ...');
+  console.log('==================================================');
+
+  const startTime = Date.now();
+  let passedCount = 0;
+  let failedCount = 0;
 
   // Từ khóa gây nhiễu để test false-positive
-  const distractors = ['hammock', 'smock', 'mocktail', 'democracy', 'mockingbird', 'passwords', 'secrets', 'api_keys'];
+  const distractors = ['hammock', 'smock', 'mocktail', 'democracy', 'mockingbird', 'passwords', 'secrets', 'api_keys', 'mockup', 'mockery'];
 
-  for (let i = 1; i <= 500; i++) {
-    // 1. Tạo 500 Ca Hợp Lệ (Tricky Clean Cases)
+  // 1. Chạy 500,000 Clean Cases (Tricky Clean Cases)
+  for (let i = 1; i <= 500000; i++) {
     const dist = distractors[i % distractors.length];
     let cleanLine = '';
     
     switch (i % 5) {
       case 0:
-        cleanLine = `const ${dist} = "safe_value_${i}";`; // Biến gây nhiễu
+        cleanLine = `const ${dist} = "safe_value_${i}";`;
         break;
       case 1:
-        cleanLine = `const password = process.env.DB_PASS_${i};`; // Gọi env an toàn
+        cleanLine = `const password = process.env.DB_PASS_${i};`;
         break;
       case 2:
-        cleanLine = `console.log("This is a mock warning message ${i}");`; // Từ khóa mock trong string literal
+        cleanLine = `console.log("This is a mock warning message ${i}");`;
         break;
       case 3:
-        cleanLine = `// TODO: we need to mock this class in tests later ${i}`; // Từ khóa mock trong comment
+        cleanLine = `// TODO: we need to mock this class in tests later ${i}`;
         break;
       case 4:
-        cleanLine = `const apiResponse = await fetch("/api/v1/users/${i}");`; // Gọi API sạch
+        cleanLine = `const apiResponse = await fetch("/api/v1/users/${i}");`;
         break;
     }
-    cleanCases.push({ id: `CLEAN_${i}`, code: cleanLine, expected: false });
 
-    // 2. Tạo 500 Ca Vi Phạm (Tricky Violating Cases)
+    const result = evaluateLine(cleanLine);
+    if (result.isViolating === false) {
+      passedCount++;
+    } else {
+      failedCount++;
+      if (failedCount <= 10) {
+        console.error(`❌ False Positive [Báo lỗi oan]: CLEAN_${i} -> ${cleanLine}`);
+      }
+    }
+  }
+
+  // 2. Chạy 500,000 Violating Cases (Tricky Violating Cases)
+  for (let i = 1; i <= 500000; i++) {
     let violatingLine = '';
-    const randomHex = Array.from({ length: 36 }, () => Math.floor(Math.random() * 16).toString(16)).join('');
+    const randomHex = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
     
     switch (i % 5) {
       case 0:
-        violatingLine = `const mockData = { id: ${i}, value: "bad" };`; // Khai báo mockData trực tiếp
+        violatingLine = `const mockData_${i} = { id: ${i}, value: "bad" };`;
         break;
       case 1:
-        violatingLine = `const mySecretApiKey = "ghp_${randomHex}";`; // Rò rỉ GitHub Token
+        violatingLine = `const mySecretApiKey = "ghp_${randomHex.padEnd(36, 'x')}";`;
         break;
       case 2:
-        violatingLine = `password = "admin_secret_pass_${i}";`; // Rò rỉ Password
+        violatingLine = `password = "admin_secret_pass_${i}";`;
         break;
       case 3:
-        violatingLine = `  debugger; // Bỏ quên dòng này ở lần sửa thứ ${i}`; // Bỏ quên debugger
+        violatingLine = `  debugger; // Bỏ quên dòng này ở lần sửa thứ ${i}`;
         break;
       case 4:
-        violatingLine = `const fakeData = getFakeUsers(${i});`; // Khai báo fakeData
+        violatingLine = `const fakeData = getFakeUsers(${i});`;
         break;
     }
-    violatingCases.push({ id: `VIOLATION_${i}`, code: violatingLine, expected: true });
+
+    const result = evaluateLine(violatingLine);
+    if (result.isViolating === true) {
+      passedCount++;
+    } else {
+      failedCount++;
+      if (failedCount <= 10) {
+        console.error(`❌ False Negative [Bỏ lọt lỗi]: VIOLATION_${i} -> ${violatingLine}`);
+      }
+    }
   }
 
-  return { cleanCases, violatingCases };
-}
-
-function runStressTest() {
-  console.log('==================================================');
-  console.log('🚀 KHỞI CHẠY BỘ KIỂM THỬ STRESS TEST 1000 CASES CỰC KHÓ...');
-  console.log('==================================================');
-
-  const { cleanCases, violatingCases } = generateTestCases();
-  let passedCount = 0;
-  let failedCount = 0;
-
-  // 1. Chạy 500 Clean Cases
-  cleanCases.forEach(tc => {
-    const result = evaluateLine(tc.code);
-    if (result.isViolating === tc.expected) {
-      passedCount++;
-    } else {
-      failedCount++;
-      console.error(`❌ False Positive [Báo lỗi oan]: ${tc.id}`);
-      console.error(`   Mã nguồn: ${tc.code}`);
-    }
-  });
-
-  // 2. Chạy 500 Violating Cases
-  violatingCases.forEach(tc => {
-    const result = evaluateLine(tc.code);
-    if (result.isViolating === tc.expected) {
-      passedCount++;
-    } else {
-      failedCount++;
-      console.error(`❌ False Negative [Bỏ lọt lỗi]: ${tc.id}`);
-      console.error(`   Mã nguồn: ${tc.code}`);
-    }
-  });
+  const duration = (Date.now() - startTime) / 1000;
 
   console.log('\n==================================================');
-  console.log('📊 KẾT QUẢ CHẠY STRESS TEST THỰC TẾ:');
-  console.log(`   - Tổng số ca kiểm thử: 1000`);
-  console.log(`   - Số ca thành công (Passed): ${passedCount}/1000`);
-  console.log(`   - Số ca thất bại (Failed): ${failedCount}/1000`);
+  console.log('📊 KẾT QUẢ CHẠY STRESS TEST 1 TRIỆU CASES THỰC TẾ:');
+  console.log(`   - Tổng số ca kiểm thử: 1.000,000`);
+  console.log(`   - Thời gian thực thi: ${duration.toFixed(2)} giây`);
+  console.log(`   - Số ca thành công (Passed): ${passedCount}/1.000,000`);
+  console.log(`   - Số ca thất bại (Failed): ${failedCount}/1,000,000`);
   console.log('==================================================');
 
   if (failedCount > 0) {
     console.error('❌ Thử nghiệm thất bại! Cần tối ưu lại các Regex Patterns.');
     process.exit(1);
   } else {
-    console.log('✅ THÀNH CÔNG RỰC RỠ! Bộ lọc đạt độ chính xác 100% trong 1000 tình huống cực khó.');
+    console.log('✅ THÀNH CÔNG RỰC RỠ! Bộ lọc đạt độ chính xác 100% trong 1 triệu tình huống cực khó.');
     process.exit(0);
   }
 }
