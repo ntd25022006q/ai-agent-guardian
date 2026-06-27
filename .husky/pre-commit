@@ -1,0 +1,5 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+# Tự động chạy script kiểm tra toàn vẹn an toàn AI Agent trước khi cho phép commit
+node scripts/check-integrity.js

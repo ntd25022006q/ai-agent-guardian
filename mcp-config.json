@@ -1,0 +1,32 @@
+{
+  "mcpServers": {
+    "web-search": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-web-search"
+      ],
+      "env": {
+        "CRITICAL_RULES": "Always search for the official documentation of libraries before using their APIs."
+      }
+    },
+    "git": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-git"
+      ]
+    },
+    "filesystem-safety": {
+      "command": "node",
+      "args": [
+        "./scripts/check-integrity.js",
+        "--mcp"
+      ],
+      "env": {
+        "ALLOWED_READ_ROOT": ".",
+        "PROTECTED_DIRS": "src,config,public,assets"
+      }
+    }
+  }
+}

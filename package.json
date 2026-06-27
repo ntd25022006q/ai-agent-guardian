@@ -1,0 +1,29 @@
+{
+  "name": "ai-agent-guardian",
+  "version": "1.0.0",
+  "description": "A comprehensive framework to enforce rules, token compression, and security on AI agents locally.",
+  "main": "scripts/check-integrity.js",
+  "scripts": {
+    "test": "npx jest",
+    "guardian": "node scripts/check-integrity.js",
+    "monitor": "node scripts/network-monitor.js",
+    "lint": "eslint .",
+    "format": "prettier --write ."
+  },
+  "keywords": [
+    "ai-agent",
+    "cursorrules",
+    "clauderules",
+    "repomix",
+    "aider",
+    "security",
+    "token-optimization"
+  ],
+  "author": "Developer",
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {
+    "eslint": "^8.57.0",
+    "prettier": "^3.2.5"
+  }
+}

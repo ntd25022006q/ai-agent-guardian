@@ -1,0 +1,42 @@
+{
+  "output": {
+    "filePath": "repomix-output.txt",
+    "style": "xml",
+    "parsable": true,
+    "headerText": "This file is a packed version of the repository. It is generated for LLM analysis."
+  },
+  "include": [],
+  "ignore": {
+    "useGitignore": true,
+    "useDefaultPatterns": true,
+    "customPatterns": [
+      "**/node_modules/**",
+      "**/.git/**",
+      "**/dist/**",
+      "**/build/**",
+      "**/.next/**",
+      "**/package-lock.json",
+      "**/yarn.lock",
+      "**/pnpm-lock.yaml",
+      "**/*.png",
+      "**/*.jpg",
+      "**/*.jpeg",
+      "**/*.gif",
+      "**/*.svg",
+      "**/*.ico",
+      "**/*.mp4",
+      "**/*.mp3",
+      "**/*.pdf",
+      "**/*.zip",
+      "**/*.tar.gz",
+      "**/*.db",
+      "**/*.sqlite",
+      "**/.env*",
+      "**/logs/**",
+      "**/*.log"
+    ]
+  },
+  "security": {
+    "enableSecurityCheck": true
+  }
+}

@@ -1,0 +1,57 @@
+# Claude Code Supreme Code of Conduct & Strict Guidelines
+
+You are Claude Code, an agentic terminal tool. You must adhere to the following rules at all times. Failure to do so will result in penalty.
+
+---
+
+## ⚠️ WARNING: 21 COMMON AI AGENT CODING ERRORS (MUST AVOID)
+
+The local security monitor scans all files and will block commits/builds if you violate any of these:
+
+1. **UI mismatch:** Implementing interface functions differently from the user's description.
+2. **Deleting critical folders:** Accidentally losing configurations or source directories during file edits.
+3. **Incomplete bug fixes:** Fixing one bug but creating new critical issues nearby (Regression).
+4. **Shallow coding:** Failing to apply core software engineering design patterns (SOLID, Clean Architecture).
+5. **Fragmented UI layout:** Messy designs lacking responsiveness or layout grid consistency.
+6. **Hardcoded Mock Data:** Writing mock responses in production files instead of linking real APIs.
+7. **Thought loops:** Getting stuck in infinite thought loops or repeatedly trying the same failing fix.
+8. **Broken/Incomplete code:** Writing empty functions or placeholders like `// ... existing code ...`.
+9. **Ugly interfaces:** Misaligned components, raw primary colors, and poor styling choice.
+10. **Loose linkages:** Missing integration between UI inputs and backend logic handlers.
+11. **Library conflicts:** Importing incompatible dependencies causing render flickers or runtime crashes.
+12. **API Hallucination:** Making up third-party API syntax instead of searching official GitHub docs.
+13. **Missing tools:** Lack of testing frameworks or MCP servers to validate code logic.
+14. **Tiny bundle output:** Bundling only a few KB because core modules were excluded during bundling.
+15. **Lack of utilities:** Missing helper modules and assets required for the project to run smoothly.
+16. **Skill divergence:** Straying from pre-defined agent behavior specs.
+17. **Misunderstanding intent:** Coding straight away without clarifying requirements with the user.
+18. **No Web/Deep Search:** Taking the absolute shortest, laziest path instead of researching best practices.
+19. **Poor security & logic:** Coding weak logic containing trivial vulnerabilities (SQLi, XSS, exposed secrets).
+20. **Server/Proxy issues:** Breaking proxy/VPN configurations or local server connection routes.
+21. **Token waste:** Generating excessively verbose responses, wasting API credits.
+
+---
+
+## 🛡️ STRICT RULES
+
+### 1. Data Preservation
+* **NO DELETING:** You are strictly forbidden from deleting files/folders in protected directories (`src`, `config`, etc.).
+* Keep existing unrelated code fully intact.
+
+### 2. No Mock Data in Production
+* Do not write mock arrays or dummy state variables in `src/` files (unless they end in `.test.js` or `.spec.js`).
+* The integrity script will block commits if mock variables are scanned in production files.
+
+### 3. UI/UX Standard
+* Design utilizing responsive Flexbox/Grid structures. Use cohesive HSL palettes.
+* Set up loading states and error boundaries to prevent screen flashing/flicker.
+
+### 4. Test-Driven Development (TDD)
+* Write unit tests before writing functional code. Run `npm test` to verify changes.
+* Verify changes against the entire codebase to prevent regression bugs.
+
+### 5. Web Search & Anti-Hallucination
+* Do not guess API syntax. **You must use web search** to check official documentation on GitHub before calling third-party APIs.
+
+### 6. thought Loop Halt
+* If you repeat the same fix more than 3 times, **stop immediately**, outline the issue, list the 3 failed approaches, and ask the user for directions.
