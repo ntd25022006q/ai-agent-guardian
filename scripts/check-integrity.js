@@ -18,11 +18,11 @@ const path = require('path');
 const PROTECTED_DIRS = ['src', 'config', 'public', 'assets', '.agents', 'scripts'];
 const MIN_BUILD_SIZE_KB = 5; // Kích thước tối thiểu cho file build cốt lõi
 
-// 2. Các mẫu Regex phát hiện Mock Data / Hardcoded dữ liệu giả lập trong file production
+// 2. Các mẫu Regex phát hiện Mock Data / Hardcoded dữ liệu giả lập trong file production (Case-Sensitive)
 const MOCK_PATTERNS = [
-  /const\s+\w*mock\w*\s*=/i,
-  /let\s+\w*mock\w*\s*=/i,
-  /var\s+\w*mock\w*\s*=/i,
+  /(?:const|let|var)\s+(?:mock|MOCK)\b/,
+  /(?:const|let|var)\s+(?:mock|MOCK)[A-Z_0-9]\w*/,
+  /(?:const|let|var)\s+\w*(?:Mock|MOCK)\b/,
   /mockData\s*=/i,
   /dummyData\s*=/i,
   /tempResponse\s*=/i,

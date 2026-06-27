@@ -7,9 +7,9 @@
 
 // Nạp lại các pattern chính thức từ check-integrity.js
 const MOCK_PATTERNS = [
-  /const\s+\w*mock\w*\s*=/i,
-  /let\s+\w*mock\w*\s*=/i,
-  /var\s+\w*mock\w*\s*=/i,
+  /(?:const|let|var)\s+(?:mock|MOCK)\b/,
+  /(?:const|let|var)\s+(?:mock|MOCK)[A-Z_0-9]\w*/,
+  /(?:const|let|var)\s+\w*(?:Mock|MOCK)\b/,
   /mockData\s*=/i,
   /dummyData\s*=/i,
   /tempResponse\s*=/i,

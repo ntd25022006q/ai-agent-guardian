@@ -7,6 +7,7 @@
     "test": "npx jest",
     "guardian": "node scripts/check-integrity.js",
     "monitor": "node scripts/network-monitor.js",
+    "stress-test": "node scripts/stress-test.js",
     "lint": "eslint .",
     "format": "prettier --write ."
   },
