@@ -9,6 +9,7 @@
     "monitor": "node scripts/network-monitor.js",
     "stress-test": "node scripts/stress-test.js",
     "stress-test-billion": "node scripts/stress-test-billion.js",
+    "gitleaks-benchmark": "node scripts/gitleaks-benchmark.js",
     "lint": "eslint .",
     "format": "prettier --write ."
   },
