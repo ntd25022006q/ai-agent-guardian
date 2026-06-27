@@ -1,22 +1,24 @@
 /**
- * AI Agent Guardian - Integrity & Safety Checker (Nâng cao)
+ * AI Agent Guardian - Integrity & Safety Checker (World-Class Enforcer)
  * 
- * Script này quét thay đổi Git, thư mục build, và phân tích tĩnh mã nguồn để phát hiện:
+ * Script này quét toàn bộ thay đổi Git, cấu trúc dự án và phân tích tĩnh để phát hiện:
  * 1. AI tự ý xóa tệp tin/thư mục quan trọng.
  * 2. Lỗi build rỗng (dung lượng file build quá thấp < 5KB).
- * 3. File sản xuất (production) chứa dữ liệu giả lập (mock data) hoặc biến dummy.
- * 4. Kiểm tra xung đột hoặc bất thường trong package dependencies.
+ * 3. File sản xuất (production) chứa dữ liệu giả lập (mock data).
+ * 4. Rò rỉ thông tin nhạy cảm (Secret Scanner - API Keys, Passwords, Tokens).
+ * 5. Cài đặt các thư viện deprecated, không an toàn hoặc bị cấm (Dependency Guard).
+ * 6. Code thừa, câu lệnh debug bị bỏ quên (Debug Leak Guard - debugger).
  */
 
 const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
-// Danh sách các thư mục quan trọng bị cấm xóa
+// 1. Danh sách các thư mục quan trọng bị cấm xóa
 const PROTECTED_DIRS = ['src', 'config', 'public', 'assets', '.agents', 'scripts'];
 const MIN_BUILD_SIZE_KB = 5; // Kích thước tối thiểu cho file build cốt lõi
 
-// Các mẫu Regex phát hiện Mock Data / Hardcoded dữ liệu giả lập trong file production
+// 2. Các mẫu Regex phát hiện Mock Data / Hardcoded dữ liệu giả lập trong file production
 const MOCK_PATTERNS = [
   /const\s+\w*mock\w*\s*=/i,
   /let\s+\w*mock\w*\s*=/i,
@@ -26,7 +28,27 @@ const MOCK_PATTERNS = [
   /tempResponse\s*=/i,
   /placeholderData\s*=/i,
   /fakeData\s*=/i,
-  /testData\s*=\s*\[\s*\{/i // Mẫu khai báo mảng object dữ liệu test thô
+  /testData\s*=\s*\[\s*\{/i
+];
+
+// 3. Các mẫu Regex quét rò rỉ Secrets (API Keys, Tokens, Passwords)
+const SECRET_PATTERNS = [
+  /ghp_[a-zA-Z0-9]{36}/,                       // GitHub Personal Access Token
+  /sk-proj-[a-zA-Z0-9]{48}/,                   // OpenAI API Key
+  /AIzaSy[a-zA-Z0-9_\-]{33}/,                  // Google Cloud API Key
+  /xoxb-[a-zA-Z0-9\-]{30,}/,                   // Slack Token
+  /amzn\.mws\.[a-zA-Z0-9\-]{30,}/,             // Amazon MWS Token
+  /password\s*=\s*['"][a-zA-Z0-9_\-!@#$]{6,}['"]/i, // Hardcoded password
+  /api_key\s*=\s*['"][a-zA-Z0-9_\-]{16,}['"]/i  // Hardcoded generic API Key
+];
+
+// 4. Danh sách các thư viện bị cấm hoặc không an toàn (bị cảnh báo bảo mật nghiêm trọng)
+const BANNED_PACKAGES = [
+  'request',         // Đã bị deprecated, rò rỉ bảo mật
+  'node-sass',       // Đã bị deprecated, cài đặt rất hay lỗi build
+  'express-jwt',     // Các bản cũ có lỗ hổng bypass xác thực
+  'moment',          // Quá nặng, khuyến nghị dùng dayjs hoặc date-fns
+  'axios-mock-adapter' // Cấm dùng mock adapter trong code production
 ];
 
 function checkGitStatus() {
@@ -34,7 +56,6 @@ function checkGitStatus() {
   try {
     let deletedFilesOutput = '';
     
-    // Hỗ trợ mock dữ liệu Git để kiểm thử tự động
     if (process.env.MOCK_GIT_STATUS !== undefined) {
       deletedFilesOutput = process.env.MOCK_GIT_STATUS;
       console.log('ℹ️  [Guardian] Sử dụng dữ liệu Git giả lập (Mocking).');
@@ -79,13 +100,43 @@ function checkGitStatus() {
   }
 }
 
-// Quét tĩnh nội dung file để chặn đứng Mock Data trong production
-function scanForMockData(dirPath = 'src') {
+// Kiểm tra dependencies trong package.json (Dependency Guard)
+function checkDependencyGuard(projectPath = 'package.json') {
+  console.log('🔍 [Guardian] Đang quét dependencies trong package.json...');
+  if (!fs.existsSync(projectPath)) {
+    console.log('ℹ️  [Guardian] Không tìm thấy package.json. Bỏ qua quét dependencies.');
+    return;
+  }
+
+  try {
+    const pkg = JSON.parse(fs.readFileSync(projectPath, 'utf8'));
+    const dependencies = { ...pkg.dependencies, ...pkg.devDependencies };
+    const violations = [];
+
+    for (const pkgName of Object.keys(dependencies)) {
+      if (BANNED_PACKAGES.includes(pkgName)) {
+        violations.push(pkgName);
+      }
+    }
+
+    if (violations.length > 0) {
+      console.error(`❌ [LỖI NGHIÊM TRỌNG] Phát hiện thư viện bị cấm hoặc không an toàn trong package.json:`, violations);
+      console.error(`👉 Yêu cầu AI Agent: Không sử dụng các thư viện đã bị deprecated (như request, node-sass) hoặc thư viện mock trong production.`);
+      process.exit(1);
+    }
+    console.log('✅ [Guardian] Kiểm tra dependencies thành công. Không phát hiện thư viện không an toàn.');
+  } catch (error) {
+    console.error('❌ [Guardian] Lỗi khi kiểm tra package.json:', error.message);
+  }
+}
+
+// Quét mã nguồn tĩnh (Mock data, Secrets, Debugger statements)
+function scanSourceCode(dirPath = 'src') {
   const targetDir = process.env.MOCK_SRC_PATH || dirPath;
-  console.log(`🔍 [Guardian] Đang quét tĩnh thư mục '${targetDir}' chống mock data...`);
+  console.log(`🔍 [Guardian] Đang quét tĩnh thư mục '${targetDir}' chống mock data, rò rỉ key và debugger...`);
   
   if (!fs.existsSync(targetDir)) {
-    console.log(`ℹ️  [Guardian] Thư mục '${targetDir}' không tồn tại. Bỏ qua quét mock data.`);
+    console.log(`ℹ️  [Guardian] Thư mục '${targetDir}' không tồn tại. Bỏ qua quét mã nguồn.`);
     return;
   }
 
@@ -101,7 +152,6 @@ function scanForMockData(dirPath = 'src') {
       if (stat && stat.isDirectory()) {
         results = results.concat(getFiles(file));
       } else {
-        // Chỉ quét các file nguồn chính, bỏ qua các file test/spec
         if (
           (file.endsWith('.js') || file.endsWith('.ts') || file.endsWith('.jsx') || file.endsWith('.tsx')) &&
           !file.includes('.test.') && !file.includes('.spec.')
@@ -115,7 +165,9 @@ function scanForMockData(dirPath = 'src') {
 
   try {
     const files = getFiles(targetDir);
-    const violations = [];
+    const mockViolations = [];
+    const secretViolations = [];
+    const debugViolations = [];
 
     for (const file of files) {
       const content = fs.readFileSync(file, 'utf8');
@@ -123,30 +175,62 @@ function scanForMockData(dirPath = 'src') {
 
       for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
+
+        // 1. Quét Mock Data
         for (const pattern of MOCK_PATTERNS) {
           if (pattern.test(line)) {
-            violations.push({
-              file: path.relative(process.cwd(), file),
-              line: i + 1,
-              content: line.trim(),
-              pattern: pattern.toString()
-            });
+            mockViolations.push({ file, line: i + 1, content: line.trim() });
             break;
           }
+        }
+
+        // 2. Quét rò rỉ Secret Keys
+        for (const pattern of SECRET_PATTERNS) {
+          if (pattern.test(line)) {
+            secretViolations.push({ file, line: i + 1, content: '[MÃ HÓA BẢO MẬT KEY]' });
+            break;
+          }
+        }
+
+        // 3. Quét câu lệnh debugger;
+        if (/\bdebugger\b/.test(line)) {
+          debugViolations.push({ file, line: i + 1, content: line.trim() });
         }
       }
     }
 
-    if (violations.length > 0) {
+    let hasErrors = false;
+
+    if (mockViolations.length > 0) {
       console.error(`❌ [LỖI NGHIÊM TRỌNG] Phát hiện AI sử dụng dữ liệu MOCK giả lập trong file production:`);
-      violations.forEach(v => {
-        console.error(`   📍 File: ${v.file}:${v.line} -> "${v.content}" (Khớp mẫu: ${v.pattern})`);
+      mockViolations.forEach(v => {
+        console.error(`   📍 File: ${path.relative(process.cwd(), v.file)}:${v.line} -> "${v.content}"`);
       });
-      console.error(`👉 Yêu cầu AI Agent: Liên kết dữ liệu thật bằng cách sử dụng các hàm API/Service, không hardcode dữ liệu giả.`);
+      hasErrors = true;
+    }
+
+    if (secretViolations.length > 0) {
+      console.error(`❌ [LỖI AN NINH NGHIÊM TRỌNG] Phát hiện rò rỉ API Keys / Passwords trong code production:`);
+      secretViolations.forEach(v => {
+        console.error(`   📍 File: ${path.relative(process.cwd(), v.file)}:${v.line} -> "${v.content}"`);
+      });
+      console.error(`👉 Yêu cầu AI Agent: Di chuyển tất cả khóa bí mật vào file .env và import bằng process.env!`);
+      hasErrors = true;
+    }
+
+    if (debugViolations.length > 0) {
+      console.error(`❌ [LỖI CHẤT LƯỢNG] Phát hiện câu lệnh 'debugger;' bị bỏ quên trong file production:`);
+      debugViolations.forEach(v => {
+        console.error(`   📍 File: ${path.relative(process.cwd(), v.file)}:${v.line} -> "${v.content}"`);
+      });
+      hasErrors = true;
+    }
+
+    if (hasErrors) {
       process.exit(1);
     }
 
-    console.log('✅ [Guardian] Quét mock dữ liệu an toàn. Không có vi phạm.');
+    console.log('✅ [Guardian] Quét mã nguồn an toàn. Không phát hiện vi phạm bảo mật hay dữ liệu mock.');
   } catch (error) {
     console.error('❌ [Guardian] Lỗi khi quét mã nguồn:', error.message);
   }
@@ -203,7 +287,8 @@ console.log('==================================================');
 console.log('🛡️  BẮT ĐẦU CHẠY KIỂM TRA TOÀN VẸN AI AGENT GUARDIAN');
 console.log('==================================================');
 checkGitStatus();
-scanForMockData();
+checkDependencyGuard();
+scanSourceCode();
 checkBuildSize();
 console.log('==================================================');
 console.log('✅ HỆ THỐNG AN TOÀN - AI AGENT ĐẠT CHUẨN KỶ LUẬT');

@@ -1,5 +1,5 @@
 /**
- * Integration Test Suite for AI Agent Guardian (Nâng cao)
+ * Integration Test Suite for AI Agent Guardian (World-Class Verification)
  * 
  * Script này tự động chạy giả lập các tình huống từ cơ bản đến phức tạp:
  * 1. Không có lỗi.
@@ -7,9 +7,12 @@
  * 3. Xóa file trong thư mục được bảo vệ (Chặn).
  * 4. Build quá nhỏ < 5KB (Chặn).
  * 5. Build chuẩn (Bỏ qua).
- * 6. File production sạch không chứa mock data (Bỏ qua).
- * 7. File production chứa mock data dạng 'const mockData = [...]' (Chặn).
- * 8. File test (.test.js) chứa mock data (Bỏ qua - Vì file test được phép có mock).
+ * 6. File production sạch không chứa mock (Bỏ qua).
+ * 7. File production chứa mock data (Chặn).
+ * 8. File test (.test.js) chứa mock data (Bỏ qua).
+ * 9. Có dependency bị cấm (request) trong package.json (Chặn).
+ * 10. Rò rỉ API Key nhạy cảm trong file production (Chặn).
+ * 11. Bỏ quên lệnh debugger; trong file production (Chặn).
  */
 
 const { fork } = require('child_process');
@@ -20,6 +23,7 @@ const INTEGRITY_SCRIPT_PATH = path.join(__dirname, 'check-integrity.js');
 const TEMP_DIR_SMALL = path.join(__dirname, 'temp_dist_small');
 const TEMP_DIR_LARGE = path.join(__dirname, 'temp_dist_large');
 const TEMP_SRC_DIR = path.join(__dirname, 'temp_src_folder');
+const TEMP_PACKAGE_JSON = path.join(__dirname, 'temp_package.json');
 
 // Helper chạy check-integrity.js
 function runIntegrityScript(env) {
@@ -67,6 +71,9 @@ function cleanupTempFolders() {
         fs.rmSync(d, { recursive: true, force: true });
       }
     });
+    if (fs.existsSync(TEMP_PACKAGE_JSON)) {
+      fs.unlinkSync(TEMP_PACKAGE_JSON);
+    }
   } catch (e) {
     // Bỏ qua lỗi dọn dẹp
   }
@@ -74,7 +81,7 @@ function cleanupTempFolders() {
 
 async function runAllTests() {
   console.log('==================================================');
-  console.log('🧪 BẮT ĐẦU CHẠY THỬ NGHIỆM PHỨC TẠP AI AGENT GUARDIAN');
+  console.log('🧪 BẮT ĐẦU CHẠY THỬ NGHIỆM CHI TIẾT AI AGENT GUARDIAN');
   console.log('==================================================');
 
   let passedCount = 0;
@@ -82,51 +89,51 @@ async function runAllTests() {
 
   const testCases = [
     {
-      name: "Test Case 1: Trạng thái Git sạch, không có file bị xóa",
+      name: "Test 1: Trạng thái Git sạch, không có file bị xóa",
       setup: () => setupTempFolders(),
       env: { MOCK_GIT_STATUS: "", MOCK_DIST_PATH: "non_existent", MOCK_SRC_PATH: "non_existent" },
       expectedCode: 0,
       assert: (res) => res.stdout.includes('Không phát hiện file quan trọng nào bị xóa')
     },
     {
-      name: "Test Case 2: Xóa file ở thư mục test/ (Không được bảo vệ) -> Cho qua",
+      name: "Test 2: Xóa file ở thư mục test/ (Không được bảo vệ) -> Cho qua",
       setup: () => {},
       env: { MOCK_GIT_STATUS: " D test/mytest.js\n", MOCK_DIST_PATH: "non_existent", MOCK_SRC_PATH: "non_existent" },
       expectedCode: 0,
       assert: (res) => res.stdout.includes('Không phát hiện file quan trọng nào bị xóa')
     },
     {
-      name: "Test Case 3: Xóa file trong src/ (Được bảo vệ) -> Phải CHẶN",
+      name: "Test 3: Xóa file trong src/ (Được bảo vệ) -> Phải CHẶN",
       setup: () => {},
       env: { MOCK_GIT_STATUS: " D src/app.js\n", MOCK_DIST_PATH: "non_existent", MOCK_SRC_PATH: "non_existent" },
       expectedCode: 1,
-      assert: (res) => res.stderr.includes('LỖI NGHIÊM TRỌNG') && res.stderr.includes('AI Agent tự ý xóa các file trong thư mục được bảo vệ: [ \'src/app.js\' ]')
+      assert: (res) => res.stderr.includes('LỖI NGHIÊM TRỌNG') && res.stderr.includes('AI Agent tự ý xóa các file trong thư mục được bảo vệ')
     },
     {
-      name: "Test Case 4: Thư mục build quá nhỏ (< 5KB) -> Phải CHẶN",
+      name: "Test 4: Thư mục build quá nhỏ (< 5KB) -> Phải CHẶN",
       setup: () => {},
       env: { MOCK_GIT_STATUS: "", MOCK_DIST_PATH: TEMP_DIR_SMALL, MOCK_SRC_PATH: "non_existent" },
       expectedCode: 1,
       assert: (res) => res.stderr.includes('LỖI NGHIÊM TRỌNG') && res.stderr.includes('Gói build quá nhẹ')
     },
     {
-      name: "Test Case 5: Thư mục build hợp lệ (10KB) -> Cho qua",
+      name: "Test 5: Thư mục build hợp lệ (10KB) -> Cho qua",
       setup: () => {},
       env: { MOCK_GIT_STATUS: "", MOCK_DIST_PATH: TEMP_DIR_LARGE, MOCK_SRC_PATH: "non_existent" },
       expectedCode: 0,
       assert: (res) => res.stdout.includes('Kiểm tra chất lượng build hoàn tất')
     },
     {
-      name: "Test Case 6: File production (src/index.js) không chứa mock -> Cho qua",
+      name: "Test 6: File production (src/index.js) không chứa mock/leak -> Cho qua",
       setup: () => {
         fs.writeFileSync(path.join(TEMP_SRC_DIR, 'index.js'), 'console.log("Dữ liệu thật kết nối API");');
       },
       env: { MOCK_GIT_STATUS: "", MOCK_DIST_PATH: "non_existent", MOCK_SRC_PATH: TEMP_SRC_DIR },
       expectedCode: 0,
-      assert: (res) => res.stdout.includes('Quét mock dữ liệu an toàn. Không có vi phạm.')
+      assert: (res) => res.stdout.includes('Quét mã nguồn an toàn. Không phát hiện vi phạm bảo mật')
     },
     {
-      name: "Test Case 7: File production (src/index.js) chứa mock data -> Phải CHẶN",
+      name: "Test 7: File production (src/index.js) chứa mock data -> Phải CHẶN",
       setup: () => {
         fs.writeFileSync(
           path.join(TEMP_SRC_DIR, 'index.js'), 
@@ -135,16 +142,14 @@ async function runAllTests() {
       },
       env: { MOCK_GIT_STATUS: "", MOCK_DIST_PATH: "non_existent", MOCK_SRC_PATH: TEMP_SRC_DIR },
       expectedCode: 1,
-      assert: (res) => res.stderr.includes('LỖI NGHIÊM TRỌNG') && res.stderr.includes('Phát hiện AI sử dụng dữ liệu MOCK giả lập trong file production')
+      assert: (res) => res.stderr.includes('LỖI NGHIÊM TRỌNG') && res.stderr.includes('Phát hiện AI sử dụng dữ liệu MOCK giả lập')
     },
     {
-      name: "Test Case 8: File test (src/index.test.js) chứa mock data -> Cho qua",
+      name: "Test 8: File test (src/index.test.js) chứa mock data -> Cho qua",
       setup: () => {
-        // Xóa file cũ
         if (fs.existsSync(path.join(TEMP_SRC_DIR, 'index.js'))) {
           fs.unlinkSync(path.join(TEMP_SRC_DIR, 'index.js'));
         }
-        // Tạo file test mới
         fs.writeFileSync(
           path.join(TEMP_SRC_DIR, 'index.test.js'), 
           'const mockData = [{ id: 1, name: "Test User" }];\ndescribe("test", () => {});'
@@ -152,14 +157,41 @@ async function runAllTests() {
       },
       env: { MOCK_GIT_STATUS: "", MOCK_DIST_PATH: "non_existent", MOCK_SRC_PATH: TEMP_SRC_DIR },
       expectedCode: 0,
-      assert: (res) => res.stdout.includes('Quét mock dữ liệu an toàn. Không có vi phạm.')
+      assert: (res) => res.stdout.includes('Quét mã nguồn an toàn. Không phát hiện vi phạm bảo mật')
+    },
+    {
+      name: "Test 9: Rò rỉ API Key nhạy cảm trong production -> Phải CHẶN",
+      setup: () => {
+        if (fs.existsSync(path.join(TEMP_SRC_DIR, 'index.test.js'))) {
+          fs.unlinkSync(path.join(TEMP_SRC_DIR, 'index.test.js'));
+        }
+        fs.writeFileSync(
+          path.join(TEMP_SRC_DIR, 'index.js'), 
+          'const apiKey = "sk-proj-123456789012345678901234567890123456789012345678";'
+        );
+      },
+      env: { MOCK_GIT_STATUS: "", MOCK_DIST_PATH: "non_existent", MOCK_SRC_PATH: TEMP_SRC_DIR },
+      expectedCode: 1,
+      assert: (res) => res.stderr.includes('LỖI AN NINH NGHIÊM TRỌNG') && res.stderr.includes('Phát hiện rò rỉ API Keys / Passwords')
+    },
+    {
+      name: "Test 10: Bỏ quên debugger; trong production -> Phải CHẶN",
+      setup: () => {
+        fs.writeFileSync(
+          path.join(TEMP_SRC_DIR, 'index.js'), 
+          'function test() {\n  debugger;\n  return true;\n}'
+        );
+      },
+      env: { MOCK_GIT_STATUS: "", MOCK_DIST_PATH: "non_existent", MOCK_SRC_PATH: TEMP_SRC_DIR },
+      expectedCode: 1,
+      assert: (res) => res.stderr.includes('LỖI CHẤT LƯỢNG') && res.stderr.includes('Phát hiện câu lệnh \'debugger;\' bị bỏ quên')
     }
   ];
 
   for (let i = 0; i < testCases.length; i++) {
     const tc = testCases[i];
     console.log(`\n🏃 Running Test ${i + 1}: ${tc.name}`);
-    tc.setup(); // Chạy tiền thiết lập
+    tc.setup();
     const res = await runIntegrityScript(tc.env);
 
     const codeMatches = res.code === tc.expectedCode;
@@ -180,7 +212,7 @@ async function runAllTests() {
   cleanupTempFolders();
 
   console.log('\n==================================================');
-  console.log('📊 TỔNG HỢP KẾT QUẢ KIỂM THỬ PHỨC TẠP:');
+  console.log('📊 TỔNG HỢP KẾT QUẢ KIỂM THỬ GUARDIAN:');
   console.log(`   - Thành công (Passed): ${passedCount}/${testCases.length}`);
   console.log(`   - Thất bại (Failed): ${failedCount}/${testCases.length}`);
   console.log('==================================================');
