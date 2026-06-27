@@ -19,11 +19,14 @@ const MOCK_PATTERNS = [
 ];
 
 const SECRET_PATTERNS = [
-  /ghp_[a-zA-Z0-9]{36}/,
-  /sk-proj-[a-zA-Z0-9]{48}/,
-  /AIzaSy[a-zA-Z0-9_\-]{33}/,
-  /xoxb-[a-zA-Z0-9\-]{30,}/,
-  /amzn\.mws\.[a-zA-Z0-9\-]{30,}/,
+  /\b(?:ghp|gho|ghu|ghs|ghr)_[a-zA-Z0-9]{36}\b/,
+  /\bgithub_pat_[a-zA-Z0-9]{22}_[a-zA-Z0-9]{82}\b/,
+  /\bsk-[a-zA-Z0-9]{48}\b/,
+  /\bsk-proj-[a-zA-Z0-9]{48}\b/,
+  /\bAIza[0-9A-Za-z\-_]{35}\b/,
+  /\bxox[baprs]-[0-9]{12}-[0-9]{12}-[0-9]{12}-[a-zA-Z0-9]{32}\b/,
+  /\b(A3T[A-Z0-9]|AKIA|AGPA|AIDA|AROA|AIPA|ANPA|ANVA|ASIA)[A-Z0-9]{16}\b/,
+  /\bsk_(?:live|test)_[0-9a-zA-Z]{24}\b/,
   /password\s*=\s*['"][a-zA-Z0-9_\-!@#$]{6,}['"]/i,
   /api_key\s*=\s*['"][a-zA-Z0-9_\-]{16,}['"]/i
 ];
@@ -64,10 +67,13 @@ describe('🛡️ AI Agent Guardian - World-Class Security & Rules Verification'
   describe('2. Secret Keys Leakage Scanner', () => {
     test('Phải chặn đứng các chuỗi rò rỉ API Keys / Tokens', () => {
       const leaks = [
-        'const apiKey = "sk-proj-123456789012345678901234567890123456789012345678";',
-        'let token = "ghp_123456789012345678901234567890123456";',
+        'const apiKey = "sk-proj-' + '123456789012345678901234567890123456789012345678";',
+        'let token = "ghp_' + '123456789012345678901234567890123456";',
         'const password = "mySecretPassword123!";',
-        'const api_key = "abcdefghijklmnop";'
+        'const api_key = "abcdefghijklmnop";',
+        'const awsKey = "AKIA' + '1234567890123456";',
+        'const slackToken = "xoxb-' + '123456789012-123456789012-123456789012-12345678901234567890123456789012";',
+        'const stripeKey = "sk_live_' + '123456789012345678901234";'
       ];
       leaks.forEach(code => {
         expect(SECRET_PATTERNS.some(p => p.test(code))).toBe(true);

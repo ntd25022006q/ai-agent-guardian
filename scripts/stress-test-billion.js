@@ -19,11 +19,14 @@ const MOCK_PATTERNS = [
 ];
 
 const SECRET_PATTERNS = [
-  /ghp_[a-zA-Z0-9]{36}/,
-  /sk-proj-[a-zA-Z0-9]{48}/,
-  /AIzaSy[a-zA-Z0-9_\-]{33}/,
-  /xoxb-[a-zA-Z0-9\-]{30,}/,
-  /amzn\.mws\.[a-zA-Z0-9\-]{30,}/,
+  /\b(?:ghp|gho|ghu|ghs|ghr)_[a-zA-Z0-9]{36}\b/,
+  /\bgithub_pat_[a-zA-Z0-9]{22}_[a-zA-Z0-9]{82}\b/,
+  /\bsk-[a-zA-Z0-9]{48}\b/,
+  /\bsk-proj-[a-zA-Z0-9]{48}\b/,
+  /\bAIza[0-9A-Za-z\-_]{35}\b/,
+  /\bxox[baprs]-[0-9]{12}-[0-9]{12}-[0-9]{12}-[a-zA-Z0-9]{32}\b/,
+  /\b(A3T[A-Z0-9]|AKIA|AGPA|AIDA|AROA|AIPA|ANPA|ANVA|ASIA)[A-Z0-9]{16}\b/,
+  /\bsk_(?:live|test)_[0-9a-zA-Z]{24}\b/,
   /password\s*=\s*['"][a-zA-Z0-9_\-!@#$]{6,}['"]/i,
   /api_key\s*=\s*['"][a-zA-Z0-9_\-]{16,}['"]/i
 ];

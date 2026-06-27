@@ -31,15 +31,18 @@ const MOCK_PATTERNS = [
   /testData\s*=\s*\[\s*\{/i
 ];
 
-// 3. Các mẫu Regex quét rò rỉ Secrets (API Keys, Tokens, Passwords)
+// 3. Các mẫu Regex quét rò rỉ Secrets (Chuẩn công nghiệp Gitleaks)
 const SECRET_PATTERNS = [
-  /ghp_[a-zA-Z0-9]{36}/,                       // GitHub Personal Access Token
-  /sk-proj-[a-zA-Z0-9]{48}/,                   // OpenAI API Key
-  /AIzaSy[a-zA-Z0-9_\-]{33}/,                  // Google Cloud API Key
-  /xoxb-[a-zA-Z0-9\-]{30,}/,                   // Slack Token
-  /amzn\.mws\.[a-zA-Z0-9\-]{30,}/,             // Amazon MWS Token
-  /password\s*=\s*['"][a-zA-Z0-9_\-!@#$]{6,}['"]/i, // Hardcoded password
-  /api_key\s*=\s*['"][a-zA-Z0-9_\-]{16,}['"]/i  // Hardcoded generic API Key
+  /\b(?:ghp|gho|ghu|ghs|ghr)_[a-zA-Z0-9]{36}\b/,                  // GitHub Tokens
+  /\bgithub_pat_[a-zA-Z0-9]{22}_[a-zA-Z0-9]{82}\b/,              // GitHub Fine-grained PAT
+  /\bsk-[a-zA-Z0-9]{48}\b/,                                      // OpenAI Classic Key
+  /\bsk-proj-[a-zA-Z0-9]{48}\b/,                                 // OpenAI Project Key
+  /\bAIza[0-9A-Za-z\-_]{35}\b/,                                  // Google Cloud API Key
+  /\bxox[baprs]-[0-9]{12}-[0-9]{12}-[0-9]{12}-[a-zA-Z0-9]{32}\b/, // Slack Tokens
+  /\b(A3T[A-Z0-9]|AKIA|AGPA|AIDA|AROA|AIPA|ANPA|ANVA|ASIA)[A-Z0-9]{16}\b/, // AWS Access Key ID
+  /\bsk_(?:live|test)_[0-9a-zA-Z]{24}\b/,                        // Stripe API Key
+  /password\s*=\s*['"][a-zA-Z0-9_\-!@#$]{6,}['"]/i,             // Hardcoded password
+  /api_key\s*=\s*['"][a-zA-Z0-9_\-]{16,}['"]/i                  // Hardcoded generic API Key
 ];
 
 // 4. Danh sách các thư viện bị cấm hoặc không an toàn (bị cảnh báo bảo mật nghiêm trọng)
