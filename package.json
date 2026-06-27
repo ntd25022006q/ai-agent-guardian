@@ -24,9 +24,9 @@
   ],
   "author": "Developer",
   "license": "MIT",
-  "dependencies": {},
   "devDependencies": {
     "eslint": "^8.57.0",
+    "jest": "^30.4.2",
     "prettier": "^3.2.5"
   }
 }

@@ -30,7 +30,7 @@ jobs:
       run: npm ci || npm install
 
     - name: Check code formatting & syntax linting
-      run: npm run lint || echo "Lưu ý: Chưa cấu hình ESLint đầy đủ hoặc có cảnh báo."
+      run: npm run lint
 
     - name: Run AI Guardian Integrity Checks (Static Mock Data Scanning)
       run: node scripts/check-integrity.js
