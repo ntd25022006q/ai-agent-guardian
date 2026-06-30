@@ -7,8 +7,8 @@
 auto-commits: false
 
 # Model and token settings
-map-tokens: 1024           # Limit the size of the repository map to save tokens
-map-multiplier: 2          # Detail level of the repo map
+map-tokens: 1024 # Limit the size of the repository map to save tokens
+map-multiplier: 2 # Detail level of the repo map
 
 # Ignore files to keep the context clean (in addition to .gitignore)
 ignore:
@@ -25,6 +25,6 @@ ignore:
 
 # Editor and terminal preferences
 code-theme: "monokai"
-show-diffs: true           # Always show what is changed so you can audit the AI's work
-show-prompts: false        # Hide verbose prompts to keep console clean
-stream: true               # Stream output for real-time verification
+show-diffs: true # Always show what is changed so you can audit the AI's work
+show-prompts: false # Hide verbose prompts to keep console clean
+stream: true # Stream output for real-time verification

@@ -35,27 +35,33 @@ Hệ thống giám sát bảo mật liên tục chạy các script kiểm soát 
 ## 🛡️ BỘ QUY TẮC KỶ LUẬT THỰC THI (ENFORCED RULES)
 
 ### 1. NGUYÊN TẮC AN TOÀN DỮ LIỆU & FILE SYSTEM
-* **Cấm tự ý xóa:** Tuyệt đối KHÔNG ĐƯỢC tự ý xóa bất kỳ tệp tin hoặc thư mục nào trong danh sách được bảo vệ (`src`, `config`, `public`, `assets`, `.agents`, `scripts`).
-* **Sao lưu tự động:** Mọi hành vi sửa đổi file lớn phải đảm bảo Git sạch để có thể rollback khi cần.
+
+- **Cấm tự ý xóa:** Tuyệt đối KHÔNG ĐƯỢC tự ý xóa bất kỳ tệp tin hoặc thư mục nào trong danh sách được bảo vệ (`src`, `config`, `public`, `assets`, `.agents`, `scripts`).
+- **Sao lưu tự động:** Mọi hành vi sửa đổi file lớn phải đảm bảo Git sạch để có thể rollback khi cần.
 
 ### 2. PHÒNG CHỐNG MOCK DATA TRONG PRODUCTION
-* **Dữ liệu thực tế:** Không được khai báo các biến chứa dữ liệu mock (ví dụ: `const mockUsers = [...]`) trong thư mục `src/` (trừ các file có hậu tố `.test.js` hoặc `.spec.js`).
-* **Static analysis block:** Script `check-integrity.js` sẽ quét mã nguồn tự động, nếu phát hiện biến mock hoặc dummy data trong file production, tiến trình build sẽ bị hủy lập tức.
+
+- **Dữ liệu thực tế:** Không được khai báo các biến chứa dữ liệu mock (ví dụ: `const mockUsers = [...]`) trong thư mục `src/` (trừ các file có hậu tố `.test.js` hoặc `.spec.js`).
+- **Static analysis block:** Script `check-integrity.js` sẽ quét mã nguồn tự động, nếu phát hiện biến mock hoặc dummy data trong file production, tiến trình build sẽ bị hủy lập tức.
 
 ### 3. THIẾT KẾ UI/UX CHUẨN MỰC CHỐNG NHẤP NHÁY
-* **Xác nhận Wireframe:** Trước khi viết code giao diện, AI phải vẽ bố cục ASCII hoặc bảng phân cấp Layout Grid/Flexbox và xin xác nhận từ lập trình viên.
-* **Đồng bộ màu sắc:** Chỉ sử dụng màu HSL/RGB tinh tế từ hệ thống Design System hoặc Tailwind CSS cấu hình sẵn. Cấm dùng mã màu thô (`#ff0000`, `blue`).
-* **Loading & Error handling:** Bắt buộc có trạng thái tải dữ liệu và Error Boundary để tránh giật lag hoặc màn hình nhấp nháy trắng đen khi render.
+
+- **Xác nhận Wireframe:** Trước khi viết code giao diện, AI phải vẽ bố cục ASCII hoặc bảng phân cấp Layout Grid/Flexbox và xin xác nhận từ lập trình viên.
+- **Đồng bộ màu sắc:** Chỉ sử dụng màu HSL/RGB tinh tế từ hệ thống Design System hoặc Tailwind CSS cấu hình sẵn. Cấm dùng mã màu thô (`#ff0000`, `blue`).
+- **Loading & Error handling:** Bắt buộc có trạng thái tải dữ liệu và Error Boundary để tránh giật lag hoặc màn hình nhấp nháy trắng đen khi render.
 
 ### 4. QUY TRÌNH KIỂM THỬ (TDD) & BẢO VỆ HỒI QUY
-* **TDD quy chuẩn:** Viết Unit Test mô tả đúng tính năng trước khi code. Chạy test suite `npm test` để xác minh.
-* **Không làm hỏng code cũ:** Mỗi thay đổi đối với hàm dùng chung bắt buộc phải chạy lại toàn bộ test suite để đảm bảo không đẻ ra lỗi mới nghiêm trọng.
+
+- **TDD quy chuẩn:** Viết Unit Test mô tả đúng tính năng trước khi code. Chạy test suite `npm test` để xác minh.
+- **Không làm hỏng code cũ:** Mỗi thay đổi đối với hàm dùng chung bắt buộc phải chạy lại toàn bộ test suite để đảm bảo không đẻ ra lỗi mới nghiêm trọng.
 
 ### 5. WEB SEARCH & CHỐNG ẢO TƯỞNG THƯ VIỆN
-* **Bắt buộc tra cứu:** AI Agent không được tự đoán API. Khi dùng bất kỳ thư viện bên thứ ba nào, AI phải sử dụng công cụ Web Search/Deep Search để tìm tài liệu chính thức từ GitHub của thư viện đó.
-* **Cấu hình đóng gói:** File build đầu ra phải chứa đầy đủ nhân cốt lõi (Vite/Webpack cấu hình chuẩn bundle full dependencies), kiểm tra dung lượng gói build không được dưới mức tối thiểu.
+
+- **Bắt buộc tra cứu:** AI Agent không được tự đoán API. Khi dùng bất kỳ thư viện bên thứ ba nào, AI phải sử dụng công cụ Web Search/Deep Search để tìm tài liệu chính thức từ GitHub của thư viện đó.
+- **Cấu hình đóng gói:** File build đầu ra phải chứa đầy đủ nhân cốt lõi (Vite/Webpack cấu hình chuẩn bundle full dependencies), kiểm tra dung lượng gói build không được dưới mức tối thiểu.
 
 ### 6. ĐIỀU KHIỂN THÔNG MINH (HALT CONDITION & TOKEN)
-* **Giới hạn Thought Loop:** Nếu sửa 1 bug quá 3 lần thất bại hoặc dính lỗi hồi quy lặp lại, AI **phải dừng ngay lập tức** và làm báo cáo chi tiết gửi người dùng.
-* **Nén Token:** Chỉ giao tiếp trực diện ngắn gọn, gửi code dưới dạng `diff` cụ thể, không viết lại toàn bộ code của các file dài.
-* **Kiểm tra mạng:** Chạy `npm run monitor` để rà soát kết nối proxy/mạng trước khi thực hiện các tác vụ API tầm xa.
+
+- **Giới hạn Thought Loop:** Nếu sửa 1 bug quá 3 lần thất bại hoặc dính lỗi hồi quy lặp lại, AI **phải dừng ngay lập tức** và làm báo cáo chi tiết gửi người dùng.
+- **Nén Token:** Chỉ giao tiếp trực diện ngắn gọn, gửi code dưới dạng `diff` cụ thể, không viết lại toàn bộ code của các file dài.
+- **Kiểm tra mạng:** Chạy `npm run monitor` để rà soát kết nối proxy/mạng trước khi thực hiện các tác vụ API tầm xa.

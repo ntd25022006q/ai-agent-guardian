@@ -27,13 +27,13 @@
  * - runIntegrityCheck(options)  -> chạy toàn bộ pipeline (Git/Dep/Source/Build)
  */
 
-const fs = require('fs');
-const path = require('path');
-const guardian = require('../scripts/check-integrity');
+const fs = require("fs");
+const path = require("path");
+const guardian = require("../scripts/check-integrity");
 
 // Đọc version từ package.json (lên 1 cấp từ src/)
-const pkgPath = path.resolve(__dirname, '..', 'package.json');
-const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
+const pkgPath = path.resolve(__dirname, "..", "package.json");
+const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf8"));
 
 /**
  * Trả về version hiện tại của Guardian, lấy từ package.json.
@@ -68,10 +68,10 @@ function listPatterns() {
  * @returns {{mock: Array<{line:number, content:string}>, secret: Array<{line:number}>, debug: Array<{line:number, content:string}>}}
  */
 function scanString(text) {
-  if (typeof text !== 'string') {
-    throw new TypeError('scanString() yêu cầu tham số kiểu string');
+  if (typeof text !== "string") {
+    throw new TypeError("scanString() yêu cầu tham số kiểu string");
   }
-  const lines = text.split('\n');
+  const lines = text.split("\n");
   const result = { mock: [], secret: [], debug: [] };
 
   for (let i = 0; i < lines.length; i++) {
@@ -113,11 +113,11 @@ function scanFile(filePath) {
   }
   const base = path.basename(abs);
   const isCode = /\.(js|jsx|ts|tsx)$/.test(base);
-  const isTest = base.includes('.test.') || base.includes('.spec.');
+  const isTest = base.includes(".test.") || base.includes(".spec.");
   if (!isCode || isTest) {
     return null;
   }
-  const content = fs.readFileSync(abs, 'utf8');
+  const content = fs.readFileSync(abs, "utf8");
   return scanString(content);
 }
 
@@ -136,9 +136,9 @@ function runIntegrityCheck(options = {}) {
     process.env.MOCK_DIST_PATH = options.dist;
   }
   guardian.checkGitStatus();
-  guardian.checkDependencyGuard(options.projectPath || 'package.json');
-  guardian.scanSourceCode(options.src || 'src');
-  guardian.checkBuildSize(options.dist || 'dist');
+  guardian.checkDependencyGuard(options.projectPath || "package.json");
+  guardian.scanSourceCode(options.src || "src");
+  guardian.checkBuildSize(options.dist || "dist");
 }
 
 module.exports = {

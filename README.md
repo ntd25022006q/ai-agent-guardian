@@ -35,12 +35,12 @@ This repository is **not a production-grade secret scanner** like [Gitleaks](htt
 
 ### When to use this repo vs alternatives
 
-| Use case | Recommended tool |
-|----------|------------------|
-| Personal pre-commit safety net for AI-agent workflows | This repo |
-| Production secret scanning across an organization | [Gitleaks](https://github.com/gitleaks/gitleaks) (200+ patterns, scans Git history, GitHub Action available) |
-| Verifying whether leaked secrets are still active | [TruffleHog](https://github.com/trufflesecurity/trufflehog) (800+ detectors with active verification) |
-| Blocking secrets before they reach GitHub | GitHub Push Protection (built into GitHub Advanced Security) |
+| Use case                                              | Recommended tool                                                                                             |
+| ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| Personal pre-commit safety net for AI-agent workflows | This repo                                                                                                    |
+| Production secret scanning across an organization     | [Gitleaks](https://github.com/gitleaks/gitleaks) (200+ patterns, scans Git history, GitHub Action available) |
+| Verifying whether leaked secrets are still active     | [TruffleHog](https://github.com/trufflesecurity/trufflehog) (800+ detectors with active verification)        |
+| Blocking secrets before they reach GitHub             | GitHub Push Protection (built into GitHub Advanced Security)                                                 |
 
 ---
 
@@ -77,14 +77,14 @@ flowchart LR
 
 ## Tech Stack
 
-| Category | Technology |
-|----------|------------|
-| Runtime | Node.js 18+ |
-| Testing | Jest 29 (27 tests, 100% coverage) |
-| Linting | ESLint 8+ |
-| Packaging | Vite 5+ |
-| Formatting | Prettier 3 |
-| CI/CD | GitHub Actions |
+| Category   | Technology                        |
+| ---------- | --------------------------------- |
+| Runtime    | Node.js 18+                       |
+| Testing    | Jest 29 (27 tests, 100% coverage) |
+| Linting    | ESLint 8+                         |
+| Packaging  | Vite 5+                           |
+| Formatting | Prettier 3                        |
+| CI/CD      | GitHub Actions                    |
 
 ---
 
@@ -108,18 +108,18 @@ node scripts/install-hooks.js
 
 ### Available Scripts
 
-| Script | Description |
-|--------|-------------|
-| `npm test` | Runs Jest unit tests (27 tests, 100% coverage) |
-| `npm run lint` | Runs ESLint |
-| `npm run format` | Formats code with Prettier |
+| Script             | Description                                                                                           |
+| ------------------ | ----------------------------------------------------------------------------------------------------- |
+| `npm test`         | Runs Jest unit tests (27 tests, 100% coverage)                                                        |
+| `npm run lint`     | Runs ESLint                                                                                           |
+| `npm run format`   | Formats code with Prettier                                                                            |
 | `npm run guardian` | Manually runs the integrity scanner (Git changes + mock/secret/debug + build size + dependency guard) |
-| `npm run monitor` | Tests connection latency to OpenAI, Gemini, and Claude APIs |
+| `npm run monitor`  | Tests connection latency to OpenAI, Gemini, and Claude APIs                                           |
 
 ### Programmatic API
 
 ```js
-const guardian = require('ai-agent-guardian');
+const guardian = require("ai-agent-guardian");
 
 guardian.getVersion();
 // => '1.0.0'
@@ -127,13 +127,13 @@ guardian.getVersion();
 guardian.listPatterns();
 // => { protectedDirs: [...], mockPatterns: [...], secretPatterns: [...], bannedPackages: [...] }
 
-guardian.scanString('const mockUsers = [];');
+guardian.scanString("const mockUsers = [];");
 // => { mock: [{ line: 1, content: 'const mockUsers = [];' }], secret: [], debug: [] }
 
-guardian.scanFile('./src/app.js');
+guardian.scanFile("./src/app.js");
 // => { mock: [], secret: [], debug: [] } | null (if file is not source code)
 
-guardian.runIntegrityCheck({ src: 'src', dist: 'dist' });
+guardian.runIntegrityCheck({ src: "src", dist: "dist" });
 // => Runs the Git + Dependency + Source + Build pipeline
 ```
 
@@ -143,17 +143,17 @@ guardian.runIntegrityCheck({ src: 'src', dist: 'dist' });
 
 Each gate must pass, or the pre-commit hook blocks the commit.
 
-| Gate | Rule name | Enforces |
-|------|-----------|----------|
-| 1 | `NO_DELETING` | Blocks deletion of `src`, `config`, `.agents`, and other protected directories |
-| 2 | `ZERO_MOCK_DATA` | Blocks mock-data structures in production source files |
-| 3 | `TEST_ALLOWANCE` | Allows `.test.js` files to declare mocks freely |
-| 4 | `BUNDLE_INTEGRITY` | Blocks builds smaller than 5 KB (catches empty bundles) |
-| 5 | `CLEAN_SYNTAX` | ESLint with zero errors/warnings configuration |
-| 6 | `REGRESSION_TEST` | Runs the test suite before allowing a commit |
-| 7 | `SECRET_SCANNER` | 10 regex patterns for common API key formats |
-| 8 | `DEBUGGER_GUARD` | Detects `debugger;` statements in production code |
-| 9 | `DEPENDENCY_GUARD` | Blocks 5 deprecated npm packages |
+| Gate | Rule name          | Enforces                                                                       |
+| ---- | ------------------ | ------------------------------------------------------------------------------ |
+| 1    | `NO_DELETING`      | Blocks deletion of `src`, `config`, `.agents`, and other protected directories |
+| 2    | `ZERO_MOCK_DATA`   | Blocks mock-data structures in production source files                         |
+| 3    | `TEST_ALLOWANCE`   | Allows `.test.js` files to declare mocks freely                                |
+| 4    | `BUNDLE_INTEGRITY` | Blocks builds smaller than 5 KB (catches empty bundles)                        |
+| 5    | `CLEAN_SYNTAX`     | ESLint with zero errors/warnings configuration                                 |
+| 6    | `REGRESSION_TEST`  | Runs the test suite before allowing a commit                                   |
+| 7    | `SECRET_SCANNER`   | 10 regex patterns for common API key formats                                   |
+| 8    | `DEBUGGER_GUARD`   | Detects `debugger;` statements in production code                              |
+| 9    | `DEPENDENCY_GUARD` | Blocks 5 deprecated npm packages                                               |
 
 ---
 

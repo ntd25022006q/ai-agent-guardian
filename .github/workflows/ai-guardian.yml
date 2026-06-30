@@ -2,9 +2,9 @@ name: AI Agent Guardian CI 🛡️
 
 on:
   push:
-    branches: [ main, master, dev ]
+    branches: [main, master, dev]
   pull_request:
-    branches: [ main, master, dev ]
+    branches: [main, master, dev]
 
 jobs:
   validate:
@@ -15,25 +15,25 @@ jobs:
         node-version: [18.x, 20.x]
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0 # Đảm bảo tải toàn bộ lịch sử Git để kiểm tra Git diff chính xác
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Đảm bảo tải toàn bộ lịch sử Git để kiểm tra Git diff chính xác
 
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'npm'
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "npm"
 
-    - name: Install dependencies
-      run: npm ci || npm install
+      - name: Install dependencies
+        run: npm ci || npm install
 
-    - name: Check code formatting & syntax linting
-      run: npm run lint
+      - name: Check code formatting & syntax linting
+        run: npm run lint
 
-    - name: Run AI Guardian Integrity Checks (Static Mock Data Scanning)
-      run: node scripts/check-integrity.js
+      - name: Run AI Guardian Integrity Checks (Static Mock Data Scanning)
+        run: node scripts/check-integrity.js
 
-    - name: Run Jest test suites
-      run: npm test
+      - name: Run Jest test suites
+        run: npm test
