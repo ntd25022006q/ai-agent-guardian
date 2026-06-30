@@ -44,6 +44,29 @@ This repository is **not a production-grade secret scanner** like [Gitleaks](htt
 
 ---
 
+## Architecture
+
+```mermaid
+flowchart LR
+    Git[git commit] --> Hook[pre-commit hook<br/>.git/hooks/pre-commit]
+    Hook --> CLI[check-integrity.js CLI]
+
+    CLI --> G1[Git Changes<br/>NO_DELETING check]
+    CLI --> G2[Dependency Guard<br/>5 banned packages]
+    CLI --> G3[Source Scanner]
+
+    G3 --> S1[Mock Patterns<br/>9 regexes]
+    G3 --> S2[Secret Patterns<br/>10 regexes]
+    G3 --> S3[Debugger Guard<br/>debugger statement]
+    G3 --> S4[Test Allowance<br/>.test.js exempt]
+
+    CLI --> G4[Bundle Integrity<br/>dist > 5KB]
+
+    G1 & G2 & G3 & G4 --> Decision{All pass?}
+    Decision -- yes --> Commit[Commit allowed]
+    Decision -- no --> Block[Commit blocked<br/>exit 1]
+```
+
 ## Features
 
 - **Native Git hook installer** — Writes a `pre-commit` hook to `.git/hooks/` via `fs.chmodSync(path, '755')`. No Husky dependency.
