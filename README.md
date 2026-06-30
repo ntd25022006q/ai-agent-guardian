@@ -2,7 +2,7 @@
 
 # 🛡️ AI Agent Guardian
 
-**Production-grade enforcer framework for local AI coding agents — with strict file safety, zero-mock-data rules, token compression, and native Git Hooks**
+**Bộ pre-commit hook nội bộ cho AI coding agent (Cursor / Claude Code) — quét mock data, leak secret, debugger statement và chặn xóa nhầm thư mục quan trọng trước khi commit.**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![Node.js](https://img.shields.io/badge/Node.js-18+-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
@@ -14,22 +14,36 @@
 
 ---
 
+## ⚠️ Honest Disclosure — Repo này thực sự làm gì?
+
+Repo này **KHÔNG phải là secret scanner production-grade** như [Gitleaks](https://github.com/gitleaks/gitleaks) hay [TruffleHog](https://github.com/trufflesecurity/trufflehog). Mục đích thật rất hẹp:
+
+| Việc repo này LÀM được | Việc repo này KHÔNG làm |
+| --- | --- |
+| Cài pre-commit hook chặn AI tự xóa thư mục `src/`, `config/`, `public/`, `assets/`, `.agents/`, `scripts/` | Không scan Git history (commit cũ) |
+| Quét code trong `src/` tìm 9 mẫu mock data (mockData, dummyData, fakeData, ...) | Không có entropy-based secret detection |
+| Quét 10 loại secret phổ biến (GitHub PAT, OpenAI `sk-`, AWS AKIA, Stripe `sk_live_`, Google `AIza...`, Slack `xox`, ...) bằng regex | Không scan file binary, không scan env file, không scan commit message |
+| Chặn 5 npm package deprecated (`request`, `node-sass`, `express-jwt`, `moment`, `axios-mock-adapter`) | Không có CVE database, không check license |
+| Quét câu lệnh `debugger;` bị bỏ quên trong code production | Không quét `console.log` (chỉ warning nhẹ) |
+| Kiểm tra dung lượng thư mục `dist/` > 5KB để chặn build rỗng | Không validate bundle structure |
+| Test latency tới Gemini / Claude / OpenAI API (script `network-monitor.js`) | Không phải health check production — chỉ kiểm tra có kết nối được không |
+
+**Khuyến nghị:** Nếu bạn cần secret scanning cho production, dùng [Gitleaks](https://github.com/gitleaks/gitleaks) (Go, 200+ pattern, scan history). Repo này chỉ là "lưới an toàn cá nhân" cho 1 developer khi phối tác với AI agent.
+
 ## ✨ Features
 
 - **Native Git Hook Enforcer** — Blocks unauthorized deletes and dirty commits natively.
 - **Static Mock Scanning** — Blocks mock variables, test arrays, and hardcoded placeholders in production code.
-- **95% Token Saver** — Optimizes Aider repo map token footprint and Repomix package layouts.
 - **IDE Rules Sync** — Synchronizes strict behavior guidelines directly into Cursor and Claude Code.
-- **World-Class Quality Gates** — Pre-configured Vite, Jest, and ESLint configs ensuring bundle completeness.
-- **VPN / Proxy Watchdog** — Automatically tests API connection latency to prevent timeout errors.
-- **Requirement Spec Guard** — Forces agents to confirm specifications and UI layouts before writing code.
+- **VPN / Proxy Watchdog** — Tests API connection latency to Gemini / Claude / OpenAI.
+- **Programmatic API** — `require('ai-agent-guardian')` exposes `getVersion()`, `listPatterns()`, `scanString()`, `scanFile()`, `runIntegrityCheck()` for use as a library.
 
 ## 🛠️ Tech Stack
 
 | Category   | Technology   |
 | ---------- | ------------ |
 | Runtime    | Node.js 18+  |
-| Testing    | Jest 29+     |
+| Testing    | Jest 30      |
 | Linting    | ESLint 8+    |
 | Packaging  | Vite 5+      |
 | Formatting | Prettier 3   |
@@ -59,17 +73,38 @@ node scripts/install-hooks.js
 
 | Script                | Description                                       |
 | --------------------- | ------------------------------------------------- |
-| `npm test`            | Runs Jest unit test suites for regex safety       |
+| `npm test`            | Runs Jest unit test suites (27 tests, 100% coverage) |
 | `npm run lint`        | Runs ESLint static syntax & styling analysis      |
 | `npm run format`      | Formats code files cleanly using Prettier         |
 | `npm run guardian`    | Manually triggers file integrity & mock checks    |
-| `npm run monitor`     | Runs latency connection tests for OpenAI/Gemini   |
+| `npm run monitor`     | Runs latency connection tests for OpenAI/Gemini/Claude |
+
+### Programmatic API
+
+```js
+const guardian = require('ai-agent-guardian');
+
+guardian.getVersion();
+// => '1.0.0'
+
+guardian.listPatterns();
+// => { protectedDirs: [...], mockPatterns: [...], secretPatterns: [...], bannedPackages: [...] }
+
+guardian.scanString('const mockUsers = [];');
+// => { mock: [{ line: 1, content: 'const mockUsers = [];' }], secret: [], debug: [] }
+
+guardian.scanFile('./src/app.js');
+// => { mock: [], secret: [], debug: [] } | null (nếu không phải file code)
+
+guardian.runIntegrityCheck({ src: 'src', dist: 'dist' });
+// => chạy pipeline Git + Dependency + Source + Build
+```
 
 ---
 
 ## 🛡️ Quality Gates & Behavior Rules
 
-Every check must PASS or the agent commit is LOCKED.
+Mỗi check phải PASS hoặc commit bị LOCK bởi pre-commit hook.
 
 | Gate | Rule Name          | Enforces                                                      |
 | ---- | ------------------ | ------------------------------------------------------------- |
@@ -79,9 +114,9 @@ Every check must PASS or the agent commit is LOCKED.
 | 4    | BUNDLE_INTEGRITY   | Blocks builds smaller than 5KB to prevent empty core package bundles. |
 | 5    | CLEAN_SYNTAX       | ESLint zero errors/warnings configuration.                    |
 | 6    | REGRESSION_TEST    | Run test suites to guarantee code modifications do not break existing modules. |
-| 7    | SPEC_ALIGNMENT     | Enforces AI to outline layout specifications before writing UI code. |
-| 8    | API_VERIFICATION   | Forces Web Search/Deep Search instead of hallucinating library API syntax. |
-| 9    | VPN_CHECK          | Verify proxy/VPN health to avoid mid-stream prompt connection loss. |
+| 7    | SECRET_SCANNER     | 10 regex patterns detect leaked API keys / tokens / passwords. |
+| 8    | DEBUGGER_GUARD     | Detect `debugger;` statement left in production code.         |
+| 9    | DEPENDENCY_GUARD   | Block deprecated / unsafe npm packages (request, node-sass, ...). |
 
 ---
 
@@ -89,32 +124,25 @@ Every check must PASS or the agent commit is LOCKED.
 
 ```
 ai-agent-guardian/
-├── .agents/
-│   ├── AGENTS.md                  # Supreme AI agent behavior constitution
-│   └── skills/                    # Specialized agent skill sets
-│       ├── code-review/           # Clean Code (SOLID), Big-O optimization
-│       ├── security-check/        # Secret leakage, XSS, injection prevention
-│       ├── specification-alignment/# UI layouts & requirement verification
-│       └── tdd-enforcement/       # Strict test-first cycle enforcer
-├── .github/
-│   └── workflows/
-│       └── ai-guardian.yml        # GitHub Actions CI verification pipeline
+├── src/
+│   └── index.js                # Public API: getVersion, listPatterns, scanString, scanFile, runIntegrityCheck
 ├── scripts/
-│   ├── check-integrity.js         # Git changes & static mock scanner
-│   ├── install-hooks.js           # Native pre-commit hook installer
-│   ├── network-monitor.js         # VPN / API server latency test
-│   └── test-guardian.js           # 8-scenario integration test suite
+│   ├── check-integrity.js      # CLI: Git changes + mock/secret/debug scanner + build size + dep guard
+│   ├── install-hooks.js        # Native pre-commit hook installer (no Husky dependency)
+│   ├── network-monitor.js      # VPN / API latency test (Gemini, Claude, OpenAI)
+│   ├── test-guardian.js        # 8-scenario integration test suite
+│   ├── gitleaks-benchmark.js   # Benchmark so sánh với Gitleaks
+│   ├── stress-test.js          # Performance test trên 10k file
+│   └── stress-test-billion.js  # Performance test trên 1M file
 ├── tests/
-│   └── integrity.test.js          # Jest regex matcher validation unit tests
-├── .clauderules                   # Claude Code rules sync
-├── .cursorrules                   # Cursor rules sync
-├── .aider.conf.yml                # Aider token & repo map footprint saver
-├── eslint.config.js               # ESLint configuration
-├── jest.config.js                 # Jest unit testing configurations
-├── mcp-config.json                # Model Context Protocol tools template
-├── package.json                   # Script configurations & dev dependencies
-├── repomix.config.json            # Repomix token saving exclusions config
-└── vite.config.js                 # Vite packaging & bundle configurations
+│   ├── integrity.test.js       # Jest regex matcher validation (8 tests)
+│   └── index.test.js           # Public API tests (19 tests)
+├── eslint.config.js            # ESLint configuration
+├── jest.config.js              # Jest unit testing configurations
+├── mcp-config.json             # Model Context Protocol tools template
+├── package.json                # Script configurations & dev dependencies
+├── repomix.config.json         # Repomix token saving exclusions config
+└── vite.config.js              # Vite packaging & bundle configurations
 ```
 
 ## 📄 License
