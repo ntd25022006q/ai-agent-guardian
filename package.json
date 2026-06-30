@@ -2,7 +2,7 @@
   "name": "ai-agent-guardian",
   "version": "1.0.0",
   "description": "A comprehensive framework to enforce rules, token compression, and security on AI agents locally.",
-  "main": "scripts/check-integrity.js",
+  "main": "src/index.js",
   "scripts": {
     "test": "npx jest",
     "guardian": "node scripts/check-integrity.js",
