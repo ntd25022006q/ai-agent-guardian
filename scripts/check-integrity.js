@@ -172,22 +172,31 @@ function scanSourceCode(dirPath = 'src') {
     const secretViolations = [];
     const debugViolations = [];
 
+    // Regex nhận diện dòng comment (// ..., /* ..., * ..., <!-- ... -->, # ...)
+    // để bỏ qua khi quét debugger — tránh false positive cho từ "debugger"
+    // xuất hiện trong JSDoc / comment mô tả tính năng scanner.
+    const COMMENT_LINE_REGEX = /^\s*(\/\/|\/\*|\*|<!--|#)/;
+
     for (const file of files) {
       const content = fs.readFileSync(file, 'utf8');
       const lines = content.split('\n');
 
       for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
+        const isCommentLine = COMMENT_LINE_REGEX.test(line);
 
-        // 1. Quét Mock Data
-        for (const pattern of MOCK_PATTERNS) {
-          if (pattern.test(line)) {
-            mockViolations.push({ file, line: i + 1, content: line.trim() });
-            break;
+        // 1. Quét Mock Data (chỉ quét code, bỏ qua comment)
+        if (!isCommentLine) {
+          for (const pattern of MOCK_PATTERNS) {
+            if (pattern.test(line)) {
+              mockViolations.push({ file, line: i + 1, content: line.trim() });
+              break;
+            }
           }
         }
 
-        // 2. Quét rò rỉ Secret Keys
+        // 2. Quét rò rỉ Secret Keys (vẫn quét trong comment vì attacker
+        //    có thể giấu key trong comment để bypass review)
         for (const pattern of SECRET_PATTERNS) {
           if (pattern.test(line)) {
             secretViolations.push({ file, line: i + 1, content: '[MÃ HÓA BẢO MẬT KEY]' });
@@ -195,8 +204,9 @@ function scanSourceCode(dirPath = 'src') {
           }
         }
 
-        // 3. Quét câu lệnh debugger;
-        if (/\bdebugger\b/.test(line)) {
+        // 3. Quét câu lệnh debugger; (chỉ quét code, bỏ qua comment —
+        //    nếu không sẽ false positive cho mọi JSDoc nhắc tới từ "debugger")
+        if (!isCommentLine && /\bdebugger\b/.test(line)) {
           debugViolations.push({ file, line: i + 1, content: line.trim() });
         }
       }
@@ -285,15 +295,32 @@ function checkBuildSize(distPath) {
   }
 }
 
-// Chạy các kiểm tra chính
-console.log('==================================================');
-console.log('🛡️  BẮT ĐẦU CHẠY KIỂM TRA TOÀN VẸN AI AGENT GUARDIAN');
-console.log('==================================================');
-checkGitStatus();
-checkDependencyGuard();
-scanSourceCode();
-checkBuildSize();
-console.log('==================================================');
-console.log('✅ HỆ THỐNG AN TOÀN - AI AGENT ĐẠT CHUẨN KỶ LUẬT');
-console.log('==================================================');
-process.exit(0);
+// Export public API để src/index.js có thể import và dùng như thư viện.
+// Chỉ chạy CLI khi file được gọi trực tiếp (node scripts/check-integrity.js),
+// không chạy khi require() từ file khác.
+module.exports = {
+  PROTECTED_DIRS,
+  MIN_BUILD_SIZE_KB,
+  MOCK_PATTERNS,
+  SECRET_PATTERNS,
+  BANNED_PACKAGES,
+  checkGitStatus,
+  checkDependencyGuard,
+  scanSourceCode,
+  checkBuildSize,
+};
+
+if (require.main === module) {
+  // Chạy các kiểm tra chính
+  console.log('==================================================');
+  console.log('🛡️  BẮT ĐẦU CHẠY KIỂM TRA TOÀN VẸN AI AGENT GUARDIAN');
+  console.log('==================================================');
+  checkGitStatus();
+  checkDependencyGuard();
+  scanSourceCode();
+  checkBuildSize();
+  console.log('==================================================');
+  console.log('✅ HỆ THỐNG AN TOÀN - AI AGENT ĐẠT CHUẨN KỶ LUẬT');
+  console.log('==================================================');
+  process.exit(0);
+}
